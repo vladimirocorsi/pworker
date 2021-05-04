@@ -27,13 +27,13 @@ func TestMakePWorkerSingleAllReceivedInOrder(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		for result := range out {
-			input := result.input.(int)
+			input := result.Input.(int)
 			if input%2 == 0 {
-				if input != result.output {
-					t.Errorf("Unexpected output value; expected %d, got %v", input, result.output)
+				if input != result.Output {
+					t.Errorf("Unexpected output value; expected %d, got %v", input, result.Output)
 				}
 			} else {
-				if result.err == nil {
+				if result.Err == nil {
 					t.Errorf("Error expected")
 				}
 			}
@@ -46,7 +46,7 @@ func TestMakePWorkerSingleAllReceivedInOrder(t *testing.T) {
 		fmt.Println("finished reading")
 	}()
 	for i := 0; i < 10000; i++ {
-		in <- Work{partitionId: 0, input: i}
+		in <- Work{PartitionId: 0, Input: i}
 	}
 	close(in)
 	fmt.Println("finished writing")
@@ -76,24 +76,24 @@ func TestMakePWorkerMultipleAllReceivedInOrder(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		for result := range out {
-			lastVal, ok := lastVals[result.partitionId]
+			lastVal, ok := lastVals[result.PartitionId]
 			if !ok {
 				lastVal = -1
 			}
-			input := result.input.(int)
+			input := result.Input.(int)
 			if input%2 == 0 {
-				if input != result.output {
-					t.Errorf("Unexpected output value; expected %d, got %v", input, result.output)
+				if input != result.Output {
+					t.Errorf("Unexpected output value; expected %d, got %v", input, result.Output)
 				}
 			} else {
-				if result.err == nil {
+				if result.Err == nil {
 					t.Errorf("Error expected")
 				}
 			}
 			if lastVal+1 != input {
 				t.Errorf("Unexpected value; expected %d, got %d", lastVal+1, input)
 			}
-			lastVals[result.partitionId] = input
+			lastVals[result.PartitionId] = input
 		}
 		wg.Done()
 		fmt.Println("finished reading")
@@ -107,7 +107,7 @@ func TestMakePWorkerMultipleAllReceivedInOrder(t *testing.T) {
 		if !ok {
 			v = 0
 		}
-		in <- Work{partitionId: pId, input: v}
+		in <- Work{PartitionId: pId, Input: v}
 		nextVals[pId] = v + 1
 	}
 	close(in)
@@ -170,24 +170,24 @@ func TestMakePWorkerMultipleNoConcurrencyInPartition(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		for result := range out {
-			lastVal, ok := lastVals[result.partitionId]
+			lastVal, ok := lastVals[result.PartitionId]
 			if !ok {
 				lastVal = -1
 			}
-			input := result.input.(noConcurrencyInput)
+			input := result.Input.(noConcurrencyInput)
 			if input.value%2 == 0 {
-				if input.value != result.output {
-					t.Errorf("Unexpected output value; expected %d, got %v", input.value, result.output)
+				if input.value != result.Output {
+					t.Errorf("Unexpected output value; expected %d, got %v", input.value, result.Output)
 				}
 			} else {
-				if result.err == nil {
+				if result.Err == nil {
 					t.Errorf("Error expected")
 				}
 			}
 			if lastVal+1 != input.value {
 				t.Errorf("Unexpected value; expected %d, got %d", lastVal+1, input.value)
 			}
-			lastVals[result.partitionId] = input.value
+			lastVals[result.PartitionId] = input.value
 		}
 		wg.Done()
 		fmt.Println("finished reading")
@@ -203,7 +203,7 @@ func TestMakePWorkerMultipleNoConcurrencyInPartition(t *testing.T) {
 			aLocks.Store(pId, &sync.Mutex{})
 			bLocks.Store(pId, &sync.Mutex{})
 		}
-		in <- Work{partitionId: pId, input: noConcurrencyInput{partitionId: pId, value: v}}
+		in <- Work{PartitionId: pId, Input: noConcurrencyInput{partitionId: pId, value: v}}
 		nextVals[pId] = v + 1
 	}
 	close(in)

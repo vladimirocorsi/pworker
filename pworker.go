@@ -9,16 +9,16 @@ import (
 
 // Input of worker pool, contains a partition id and the input which will be passed to the WorkerFunc.
 type Work struct {
-	partitionId int
-	input       interface{}
+	PartitionId int
+	Input       interface{}
 }
 
 // Output of the worker pool.
 type Result struct {
-	partitionId int
-	input       interface{}
-	err         error
-	output      interface{}
+	PartitionId int
+	Input       interface{}
+	Err         error
+	Output      interface{}
 }
 
 // Function applied by the workers to the input (see Work.input).
@@ -78,7 +78,7 @@ func MakePWorker(numWorkers int, capacity int, workerFunction WorkerFunc) (chan<
 				//Tere is work ready to be delivered
 				out <- *result
 				//Once delivered remove from buffer
-				buf.removeWork(result.partitionId)
+				buf.removeWork(result.PartitionId)
 			case getPoolInMaybe() <- buf.getNext():
 				//Work submitted to the pool
 				//Remove from buffer backlog
@@ -124,14 +124,14 @@ func (b *buffer) appendWork(work *Work) {
 	var part *partition
 	for el := b.partitions.Front(); el != nil; el = el.Next() {
 		curPartition := el.Value.(*partition)
-		if curPartition.id == work.partitionId {
+		if curPartition.id == work.PartitionId {
 			part = curPartition
 			break
 		}
 	}
 	if part == nil {
 		//Create partition
-		part = newPartition(work.partitionId)
+		part = newPartition(work.PartitionId)
 		b.partitions.PushBack(part)
 		//Add work to backlog
 		b.workBacklog.PushBack(work)
@@ -243,12 +243,12 @@ func worker(workerId int, in <-chan *Work, out chan<- *Result, function WorkerFu
 				run = false
 				continue
 			}
-			ret, err := safeExecute(function, w.input)
+			ret, err := safeExecute(function, w.Input)
 			out <- &Result{
-				partitionId: w.partitionId,
-				input:       w.input,
-				err:         err,
-				output:      ret,
+				PartitionId: w.PartitionId,
+				Input:       w.Input,
+				Err:         err,
+				Output:      ret,
 			}
 		}
 	}
