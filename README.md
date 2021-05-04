@@ -5,7 +5,9 @@ Work items of the same partition are processed serially in order of arrival.
 ## Example
 ```go
 numPartitions := 10 //try replace this
-in, out := pworker.MakePWorker(numPartitions, numPartitions*2,
+numWorkers := 10
+bufferSize := 20
+in, out := pworker.MakePWorker(numWorkers, bufferSize,
     func(arg interface{}) (interface{}, error) {
         i := arg.(int)
         time.Sleep(100 * time.Millisecond)
